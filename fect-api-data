@@ -1,0 +1,88 @@
+in controller
+
+use Illuminate\Support\Facades\Http;
+
+    public function sales()
+    {
+        
+
+        try {
+            // Make a GET request to the external API
+            $response = Http::get('https://test.hi5-consulting.com/api/all-jobs');
+
+            // Check if the response is successful
+            if ($response->successful()) {
+                // Parse the response data
+                $jobs = $response->json(); // Assuming the API returns JSON data
+                return view('sales.index', ['jobs' => $jobs]); // Pass data to the view
+            } else {
+                // Handle error response
+                return response()->json([
+                    'error' => 'Failed to fetch jobs.',
+                    'status' => $response->status()
+                ], $response->status());
+            }
+        } catch (\Exception $e) {
+            // Handle exceptions like timeout or connection error
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
+        }
+
+
+
+        // $response = Http::get('https://test.hi5-consulting.com/api/all-jobs');
+    
+        // // Check if the response is successful
+        // if ($response->successful()) {
+        //     // Get the jobs data from the API response
+        //     $jobs = $response->json();
+    
+        //     // Check if the 'data' key exists and contains the job list
+        //     if (isset($jobs['data']) && is_array($jobs['data'])) {
+        //         return view('sales.index', compact('jobs'));
+        //     } else {
+        //         // If the 'data' key is not found or is empty
+        //         return view('sales.index', ['jobs' => []])->with('error', 'No jobs available at the moment.');
+        //     }
+        // } else {
+        //     // Handle API request failure
+        //     return view('sales.index', ['jobs' => []])->with('error', 'Unable to fetch jobs at the moment.');
+        // }
+    }
+
+
+<!--     in blade file -->
+
+
+        <!-- Check if there are any jobs -->
+        @if(isset($jobs['data']) && count($jobs['data']) > 0)
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Job Title</th>
+                        <th>Industry</th>
+                        <th>Employment Type</th>
+                        <th>Location</th>
+                        <th>Company</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($jobs['data'] as $job)
+                        <tr>
+                            <td>{{ $job['job_title'] }}</td> <!-- Correct syntax here -->
+                            <td>{{ $job['job_industry'] }}</td> <!-- Correct syntax here -->
+                            <td>{{ $job['employment_type'] }}</td> <!-- Correct syntax here -->
+                            <td>{{ $job['job_location'] }}</td> <!-- Correct syntax here -->
+                            <td>{{ $job['company'] }}</td> <!-- Correct syntax here -->
+                            <td>{{ $job['status'] }}</td> <!-- Correct syntax here -->
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @else
+            <p>No jobs available at the moment.</p>
+        @endif
+
+    
