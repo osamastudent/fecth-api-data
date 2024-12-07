@@ -86,3 +86,18 @@ use Illuminate\Support\Facades\Http;
         @endif
 
     
+
+
+
+fetch latest record
+public function adminCheckEmployeeReports()
+{
+    // Fetch unique attendance records grouped by user_id
+    $attendancesAll = Attendance::with('user')
+        ->select('user_id', \DB::raw('MAX(date) as latest_date')) // Example: Get the latest date for each user
+        ->groupBy('user_id') // Group by user_id
+        ->get();
+
+    return view('contact.check-attendance-reports', compact('attendancesAll'));
+}
+
