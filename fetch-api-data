@@ -101,3 +101,81 @@ public function adminCheckEmployeeReports()
     return view('contact.check-attendance-reports', compact('attendancesAll'));
 }
 
+
+***************************************************************next***********************************************************
+fecth data with image in controll createing api 
+
+public function blogs_api()
+{
+    $blogs = Blog::all();
+
+    $baseURL = '/assets/images/blogs/'; // Use a relative path to the public folder
+    foreach ($blogs as $blog) {
+        // Attach the full image URL
+        $blog->image_url = asset($baseURL . $blog->image); // 'asset()' generates the full URL for public files
+
+        // Decode category IDs (assuming JSON format in DB)
+        $categoryIds = json_decode($blog->category, true);
+
+        // Fetch related categories
+        $categories = Category::whereIn('id', $categoryIds)->get();
+
+        // Attach category names
+        $categoryNames = $categories->pluck('name')->toArray();
+        $blog->category_names = $categoryNames;
+    }
+
+    return response()->json([
+        'data' => $blogs,
+        'status' => 200,
+    ]);
+}
+
+  <tbody>
+      @if(count($blogs) > 0)
+        @foreach($blogs as $blog)
+        <tr>
+            <td>{{ $blog['id'] }}</td>
+            <td>{{ implode(', ', json_decode($blog['category'])) }}</td> <!-- Display category IDs -->
+            <td>{{ implode(', ', $blog['category_names']) }}</td> 
+            <td><img src="{{ $blog['image_url'] }}" alt="Blog Image" width="100"></td> <!-- Display image -->
+        </tr>
+        @endforeach
+    @else
+        <tr>
+            <td colspan="3">No blogs available at the moment.</td>
+        </tr>
+    @endif
+</tbody>
+
+fecth api data inc controller
+  public function services()
+    {
+        try {
+            // Fetch blogs from the external API
+            $response = Http::get('https://hrm.thedatech.com/api/blogs');
+    
+            if ($response->successful()) {
+                // Parse response into array
+                $blogs = $response->json()['data'] ?? [];
+    
+                // Pass blogs to the view
+                return view('website.service', compact('blogs'));
+            }
+    
+            return response()->json([
+                'error' => 'Failed to fetch blogs from the external API.',
+                'status' => $response->status(),
+            ], $response->status());
+        } catch (\Exception $e) {
+            // Handle exceptions
+            return response()->json([
+                'error' => 'An error occurred while fetching blogs.',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+
+
+    }
+
+
